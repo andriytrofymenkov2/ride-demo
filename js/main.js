@@ -126,7 +126,7 @@
   });
   new IntersectionObserver(([e]) => e.isIntersecting ? loop() : clearInterval(auto), { threshold: 0.25 }).observe($('#svc'));
 
-  /* ---------- ruta 3 ---------- */
+  /* ---------- ruta de viajeros ---------- */
   const route = $('#route');
   new IntersectionObserver(([e], obs) => {
     if (!e.isIntersecting) return; obs.disconnect();
