@@ -99,8 +99,9 @@
   }
   function updWords(el) {
     const r = el.getBoundingClientRect(), words = el._words || [];
-    const prog = Math.min(Math.max((innerHeight * 0.85 - r.top) / (r.height + innerHeight * 0.35), 0), 1);
-    const n = Math.round(prog * words.length * 1.15);
+    // empieza a encenderse al entrar y termina cuando el centro del texto llega un poco por debajo de la mitad de la pantalla
+    const prog = Math.min(Math.max((innerHeight * 0.92 - r.top) / (innerHeight * 0.32 + r.height / 2), 0), 1);
+    const n = Math.ceil(prog * words.length);
     words.forEach((w, i) => w.classList.toggle('on', i < n));
   }
   const wordEls = $$('.reveal-words');
