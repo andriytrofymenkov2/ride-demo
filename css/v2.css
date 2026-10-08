@@ -83,10 +83,15 @@
 .social-big a{display:flex;align-items:center;gap:10px;padding:.8em 1.1em;box-shadow:inset 0 0 0 1px var(--line);font-size:.85rem;font-weight:700;transition:.3s}
 .social-big a:hover{background:#fff;color:#000}
 .social-big svg{width:20px;height:20px}
-.dd-social{display:flex;gap:16px}
-.dd-social svg{width:26px;height:26px}
-.foot__social{display:flex;gap:14px}
-.foot__social svg{width:18px;height:18px}
+.dd-social{display:flex;gap:14px;margin-top:6px}
+.dd-social a{width:58px;height:58px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);color:#fff !important}
+.dd-social a:hover{background:var(--red);box-shadow:none}
+.dd-social svg{width:28px;height:28px}
+.foot{align-items:center}
+.foot__social{display:flex;gap:12px}
+.foot__social a{display:flex !important;align-items:center;gap:12px;padding:12px 20px 12px 14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);color:#fff !important;font-family:'Archivo',sans-serif;font-weight:800;font-size:.95rem;text-transform:none;letter-spacing:0;transition:background .3s,transform .3s}
+.foot__social a:hover{background:var(--red);box-shadow:none}
+.foot__social svg{width:30px;height:30px}
 
 /* mapa a color, bien señalizado */
 .map{position:relative;margin:0 var(--gut) 4vw;height:34vw;min-height:380px;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);background:#1a1b1e}
@@ -101,6 +106,8 @@
 .map__btns .btn{font-size:.72rem;padding:.9em 1.2em}
 
 @media (max-width:760px){
+  .foot__social{width:100%;margin:8px 0}
+  .foot__social a{flex:1;justify-content:center}
   .sec-label{font-size:7.4vw;margin-bottom:3vw}
   .nav__social,.nav .lang{display:none}
   .eng-btn{gap:10px}
