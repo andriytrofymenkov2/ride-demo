@@ -8,14 +8,17 @@
 .nav__social a,.menu__social a,.dd-social a,.foot__social a{display:grid;place-items:center;color:#c9ccd1;transition:color .3s,transform .3s}
 .nav__social a:hover,.menu__social a:hover,.dd-social a:hover,.foot__social a:hover{color:var(--red);transform:translateY(-2px)}
 .nav__social svg{width:1.05vw;height:1.05vw;min-width:16px;min-height:16px}
-.lang{display:flex;box-shadow:inset 0 0 0 1px var(--line)}
-.lang button{font-size:.66rem;padding:.55em .7em;color:#9a9ea5;letter-spacing:.06em;transition:.25s}
-.lang button.is-on{background:#fff;color:#000}
-.lang button:not(.is-on):hover{color:#fff}
-.menu__row{display:flex;align-items:center;gap:6vw;margin-top:3vh}
+.lang{display:flex;gap:6px;align-items:center}
+.lang button{display:flex;align-items:center;gap:8px;padding:4px;border-radius:4px;opacity:.45;filter:saturate(.6);transition:opacity .25s,filter .25s,box-shadow .25s,transform .25s}
+.lang button:hover{opacity:.9;filter:none;transform:translateY(-1px)}
+.lang button.is-on{opacity:1;filter:none;box-shadow:0 0 0 1.5px #fff}
+.flag{width:24px;height:16px;display:block;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.lang--full{flex-direction:column;align-items:flex-start;gap:10px}
+.lang--full button{padding:8px 12px 8px 8px;font-weight:700;font-size:1rem;color:#fff}
+.lang--full .flag{width:30px;height:20px}
+.menu__row{display:flex;align-items:flex-start;gap:8vw;margin-top:3vh}
 .menu__social{display:flex;gap:5vw}
 .menu__social svg{width:26px;height:26px}
-.menu .lang button{font-size:.8rem;padding:.7em 1em}
 
 /* botón del motor, al lado del motor */
 .eng-btn{position:absolute;z-index:4;left:0;top:0;display:flex;align-items:center;gap:14px;padding:0;opacity:0;transform:translate3d(var(--bx,70vw),var(--by,60vh),0);transition:opacity .6s .4s}
