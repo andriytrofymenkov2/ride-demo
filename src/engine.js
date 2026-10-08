@@ -209,10 +209,10 @@ function cylinderUnit(phi, zOff, front, delay) {
   const r2 = new THREE.Mesh(new RoundedBoxGeometry(1.0, 0.2, 1.45, 5, 0.09), M.chrome); r2.position.y = 0.18; rock.add(r2);
   const strip = new THREE.Mesh(new RoundedBoxGeometry(1.02, 0.035, 1.47, 2, 0.015), M.red); strip.position.y = 0.09; rock.add(strip);
   rock.position.y = cylBase + cylLen + 0.6;
-  part(rock, g, [0, 1, 0], 3.4, 0.14 + delay, [0, 0.3, 0], front ? 'Balancines' : null);
+  part(rock, g, [0, 1, 0], 2.85, 0.14 + delay, [0, 0.3, 0], front ? 'Balancines' : null);
   [[-0.42, -0.58], [0.42, -0.58], [-0.42, 0.58], [0.42, 0.58]].forEach(([x, z], i) => {
     const b = boltMesh(0.34, 0.042); b.position.set(x, cylBase + cylLen + 0.81, z);
-    part(b, g, [0, 1, 0], 4.2, 0.0 + delay + i * 0.012, [0, 0, 0], null, { unscrew: 'y', turns: 4 });
+    part(b, g, [0, 1, 0], 3.5, 0.0 + delay + i * 0.012, [0, 0, 0], null, { unscrew: 'y', turns: 4 });
   });
 
   // válvulas con resortes rojos
