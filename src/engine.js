@@ -319,12 +319,33 @@ filter.position.set(-1.72, crankY - 0.3, 0.35);
 part(filter, engine, [-1, -0.2, 0.3], 1.6, 0.3, [0, 0, 0], 'Filtro de aceite');
 
 // ---------- doble escape cromado ----------
+const flames = [];
+function flameTex(stops) { // degradé a lo largo de la llama: abajo (base caliente) → arriba (punta que se apaga)
+  const c = document.createElement('canvas'); c.width = 8; c.height = 256; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 256, 0, 0); stops.forEach(([o, col]) => gr.addColorStop(o, col)); g.fillStyle = gr; g.fillRect(0, 0, 8, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+// cono a lo largo de +x (base en la puntera, punta hacia atrás)
+const flameGeo = new THREE.ConeGeometry(0.2, 1.4, 20, 1, true); flameGeo.rotateZ(-Math.PI / 2); flameGeo.translate(0.7, 0, 0);
+const flameMatO = new THREE.MeshBasicMaterial({ map: flameTex([[0, 'rgba(255,240,200,1)'], [0.25, 'rgba(255,150,40,.95)'], [0.6, 'rgba(230,40,0,.6)'], [1, 'rgba(120,0,0,0)']]), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+const flameMatI = new THREE.MeshBasicMaterial({ map: flameTex([[0, 'rgba(220,240,255,1)'], [0.4, 'rgba(80,140,255,.8)'], [1, 'rgba(0,40,255,0)']]), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(255,230,180,1)'); r.addColorStop(0.25, 'rgba(255,140,40,.7)'); r.addColorStop(0.6, 'rgba(220,40,0,.18)'); r.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const glowMat = new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+const fireLight = new THREE.PointLight(0xff7a1a, 0, 9, 1.8); scene.add(fireLight);
 function header(pts, label, start) {
   const path = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)));
   const m = new THREE.Mesh(new THREE.TubeGeometry(path, seg(160), 0.12, seg(24), false), M.chrome);
   const end = pts[pts.length - 1];
   const tip = cyl(0.19, 0.8, M.carbon, 0.19, 40); tip.rotation.z = Math.PI / 2 - 0.08; tip.position.set(end[0] + 0.3, end[1] + 0.02, end[2]); m.add(tip);
   const ring = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.022, 8, seg(40)), M.machined); ring.rotation.y = Math.PI / 2; ring.position.set(end[0] + 0.7, end[1] + 0.05, end[2]); m.add(ring);
+  // llamarada: núcleo azul + lengua naranja (aditivo), apuntando hacia atrás
+  const fl = new THREE.Group(); fl.position.set(end[0] + 0.74, end[1] + 0.05, end[2]); fl.rotation.z = 0.08;
+  const outer = new THREE.Mesh(flameGeo, flameMatO); outer.scale.set(1, 1, 1); fl.add(outer);
+  const inner = new THREE.Mesh(flameGeo, flameMatI); inner.scale.set(0.55, 0.5, 0.5); fl.add(inner);
+  const glow = new THREE.Sprite(glowMat.clone()); glow.position.x = 0.25; fl.add(glow);
+  fl.visible = false; m.add(fl); flames.push({ g: fl, o: outer, i: inner, glow, seed: Math.random() * 10 });
   part(m, engine, [0.3, -0.25, 1], 1.7, start, [0, 0, 0], label);
 }
 const fp = h => [-Math.sin(V) * h - 0.75, crankY + Math.cos(V) * h + 0.2];
@@ -346,7 +367,7 @@ engine.traverse(o => { if (o.isMesh && o !== floor && o !== ao) { o.castShadow =
 
 // ---------- etiquetas HTML ----------
 const labelLayer = document.getElementById('labels');
-const labeled = parts.filter(p => p.label && (!isMobile || ['Bielas', 'Cigüeñal', 'Filtro de aire', 'Balancines', 'Tapas de cilindro'].includes(p.label)));
+const labeled = []; // sin carteles sobre las piezas
 labeled.forEach((p, i) => {
   const el = document.createElement('div'); el.className = 'lbl';
   el.innerHTML = `<i></i><span class="lt"></span>`; el.dataset.es = p.label;
@@ -357,8 +378,9 @@ labeled.forEach((p, i) => {
 const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const clamp01 = v => Math.min(Math.max(v, 0), 1);
 let explode = 0, target = 0, mode = 'auto', phaseT = 0;
-const DUR = 3.6;             // duración del despiece completo (s)
-const HOLD_IN = 3.4, HOLD_OUT = 4;
+const DUR = 2.1;             // duración del despiece completo (s)
+const HOLD_IN = 3.2, HOLD_OUT = 1.6; // armado: ralentí + acelerada con llamarada; desarmado: pausa corta
+const REV0 = 1.0, REV1 = 2.6;        // ventana de la acelerada dentro del tiempo armado
 const statusEl = document.getElementById('engineStatus');
 const toggleBtn = document.getElementById('engineToggle');
 const btnTxt = document.getElementById('engineBtnTxt');
@@ -404,7 +426,7 @@ function resize() {
   const visH = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const visW = visH * camera.aspect;
   fit.s = portrait ? Math.min(0.8, visW / 8.4) : Math.min(1, visW / 12.5);
-  fit.x = portrait ? 0 : visW * 0.2;
+  fit.x = portrait ? 0 : visW * 0.17;
   fit.y = portrait ? visH * 0.27 : 0.15;
   fit.portrait = portrait;
   // el botón Armar/Desarmar se ubica pegado al motor (debajo, a la izquierda del cárter)
@@ -440,7 +462,23 @@ function tick() {
 
   // motor en marcha cuando está armado (ralentí con vibración)
   const running = 1 - clamp01(explode * 4);
-  theta += dt * (1.0 + running * 11);
+  // acelerada: solo armado, en la ventana REV0..REV1 del tiempo de espera
+  const hold = target === 0 ? phaseT - DUR : -1;
+  const rev = hold > REV0 && hold < REV1 ? Math.sin(Math.PI * (hold - REV0) / (REV1 - REV0)) : 0;
+  theta += dt * (1.0 + running * 11 + rev * 26);
+  // llamaradas con explosiones irregulares (petardeo) al final de la acelerada
+  let fire = 0;
+  for (const f of flames) {
+    const pop = rev > 0.15 ? Math.max(0, Math.sin(t * 31 + f.seed) * Math.sin(t * 17.3 + f.seed * 2)) : 0;
+    const k = rev > 0.15 ? Math.min(1, rev * 1.3) * (0.55 + 0.6 * pop) : 0;
+    f.g.visible = k > 0.02; fire = Math.max(fire, k);
+    const len = 0.35 + k * 0.6 + Math.random() * 0.18 * k, w = 0.7 + k * 0.45 + Math.random() * 0.12;
+    f.o.scale.set(len, w, w); f.i.scale.set(len * 0.6, w * 0.55, w * 0.55);
+    f.o.material.opacity = Math.min(0.85, k);
+    f.glow.scale.setScalar(0.6 + k * 1.1 + Math.random() * 0.2); f.glow.material.opacity = Math.min(1, k * 1.1);
+  }
+  if (flames[0]) { flames[0].g.getWorldPosition(fireLight.position); }
+  fireLight.intensity = fire * (50 + Math.random() * 25);
 
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
@@ -483,7 +521,7 @@ function tick() {
   engine.rotation.y = -0.6 + idle + yaw + mx * 0.25;
   engine.rotation.x = 0.06 + my * 0.1;
   const ex = easeIO(explode);
-  const vib = running * 0.006;
+  const vib = running * 0.006 + rev * 0.02;
   engine.scale.setScalar(fit.s * (1 - 0.4 * ex));
   engine.position.set(fit.x + Math.sin(theta * 2) * vib, fit.y - 0.7 * fit.s * ex + Math.sin(t * 1.1) * 0.03 + Math.cos(theta * 2) * vib, 0);
   rim.intensity = 38 + Math.sin(t * 2) * 5 + ex * 30;
